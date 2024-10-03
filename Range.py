@@ -1,25 +1,33 @@
 from phevaluator import evaluate_cards
 import CardUtils
 from Deck import Deck
-#Class to reoresent a range of two-card hands
 
+#IDEAS FOR ABSTRACTION:
+# If I can find hands that are identical, given a board, remove all but one from the range.
+# Then, have a matrix same size as array, that provides concentration.
+# The default vals for this array will all be 1. np.ones(52, 52)
+
+
+#Class to reoresent a range of two-card hands
 class Range:
 
     #Automatically initialize range to full
-    def __init__(self, handsString='', empty=False):
+    def __init__(self, hands=None, empty=False):
         self.hands = set()
         if empty:
             #Do nothing!
             pass
         else:
-            if handsString:
-                #Implement this later for easier range building
-                pass    
+            if hands != None:
+                self.hands = hands.copy()
             else:
                 #Full range
                 for firstCard in range(51, -1, -1):
                     for secondCard in range(firstCard - 1, -1, -1):
                         self.hands.add((firstCard, secondCard))
+
+    def copy(self):
+        return Range(hands=self.hands)
 
     #Returns true if given hand is in range, false otherwise
     def contains(self, hand):
@@ -54,26 +62,42 @@ class Range:
             return
         self.removeCards(hand)
         self.removeCards(board)
+        if len(self.hands) == 0:
+            return None
 
         #Deck only needed if board on turn, flop, or pre
         currentDeck = Deck()
         currentDeck.removeCards(board)
         currentDeck.removeCards(hand)
 
+
         #CURRENT ASSUMPTION: Given board is on the river
         #THOUGHTS: Will implement either full runouts for turn and flop, or monte-carlo-like simulations
         wins = 0
         losses = 0
         chops = 0
-        for selfHand in self.hands:
-            selfScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], selfHand[0], selfHand[1])
-            againstScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], hand[0], hand[1])
-            if selfScore < againstScore:
-                wins += 1
-            elif selfScore > againstScore:
-                losses += 1
-            else:
-                chops += 1
+      
+        #If on turn:
+        if len(board) == 4:
+            while currentDeck.size() > 0:
+                riverCard = currentDeck.dealCard()
+                print(riverCard)
+                currentEquity = self.copy().equityAgainstHand(hand, board.copy() + [riverCard])
+                if currentEquity == None:
+                    continue
+                wins += currentEquity / 100
+                losses += (100 - currentEquity) / 100
+                print(wins, losses)
+        else:
+            for selfHand in self.hands:
+                selfScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], selfHand[0], selfHand[1])
+                againstScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], hand[0], hand[1])
+                if selfScore < againstScore:
+                    wins += 1
+                elif selfScore > againstScore:
+                    losses += 1
+                else:
+                    chops += 1
         return (wins + chops/2)/(wins + chops + losses) * 100
 
     #For representing the board in a string interface
@@ -109,13 +133,9 @@ class Range:
                         
 
 if __name__ == "__main__":
-    testFullRange = Range()
-    cardsToRemove = [31, 30, 29, 28, 11, 10, 9, 8]
-    for num in range(0, 51, 4):
-        cardsToRemove.append(num)
-    for card in cardsToRemove:
-        testFullRange.removeCard(card)
+    testFullRange = Range(empty=True)
+    testFullRange.add((9, 8))
     print(testFullRange)
-    print(testFullRange.equityAgainstHand((51, 50), [49, 24, 20, 16, 12]))
+    print(testFullRange.equityAgainstHand((51, 50), [49,  20, 16, 12]))
 
 
