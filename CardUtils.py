@@ -5,3 +5,9 @@ suitStrings = ['♣', '♢', '♡', '♠']
 
 def numToCard(num):
     return rankStrings[num // 4] + suitStrings[num % 4]
+
+def numsToCards(nums):
+    cardsString = ''
+    for num in nums:
+        cardsString += numToCard(num)
+    return cardsString

@@ -81,13 +81,11 @@ class Range:
         if len(board) == 4:
             while currentDeck.size() > 0:
                 riverCard = currentDeck.dealCard()
-                print(riverCard)
                 currentEquity = self.copy().equityAgainstHand(hand, board.copy() + [riverCard])
                 if currentEquity == None:
                     continue
                 wins += currentEquity / 100
                 losses += (100 - currentEquity) / 100
-                print(wins, losses)
         else:
             for selfHand in self.hands:
                 selfScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], selfHand[0], selfHand[1])
@@ -133,9 +131,10 @@ class Range:
                         
 
 if __name__ == "__main__":
-    testFullRange = Range(empty=True)
-    testFullRange.add((9, 8))
+    testFullRange = Range()
+    acesHand = (51, 50)
+    exampleBoard = [49, 20, 16, 12]
     print(testFullRange)
-    print(testFullRange.equityAgainstHand((51, 50), [49,  20, 16, 12]))
+    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand((51, 50), exampleBoard))
 
 
