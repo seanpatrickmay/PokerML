@@ -1,3 +1,5 @@
+import numpy as np
+import sys
 from phevaluator import evaluate_cards
 import CardUtils
 from Deck import Deck
@@ -6,7 +8,7 @@ from Deck import Deck
 # If I can find hands that are identical, given a board, remove all but one from the range.
 # Then, have a matrix same size as array, that provides concentration.
 # The default vals for this array will all be 1. np.ones(52, 52)
-
+# Implement abstractify function, takes in a function to compare hands, edits concentrations
 
 #Class to reoresent a range of two-card hands
 class Range:
@@ -14,6 +16,7 @@ class Range:
     #Automatically initialize range to full
     def __init__(self, hands=None, empty=False):
         self.hands = set()
+        self.concentrations = np.zeros((52, 52), dtype=float)
         if empty:
             #Do nothing!
             pass
@@ -25,6 +28,9 @@ class Range:
                 for firstCard in range(51, -1, -1):
                     for secondCard in range(firstCard - 1, -1, -1):
                         self.hands.add((firstCard, secondCard))
+        for hand in self.hands:
+            self.concentrations[hand[0], hand[1]] = 1
+
 
     def copy(self):
         return Range(hands=self.hands)
@@ -36,6 +42,7 @@ class Range:
     #Removes a hand from the range
     def remove(self, hand):
         self.hands.remove(hand)
+        self.concentrations[hand[0], hand[1]] = 0
 
     #Adds a hand to the range
     def add(self, hand):
@@ -52,6 +59,22 @@ class Range:
         for card in cards:
             self.removeCard(card)
 
+    #Given a hand comparator, simplifies range by removing duplicates, changes range concentrations to match
+    def abstractify(self, handComparator):
+        handsInRange = self.hands.copy()
+        for hand in handsInRange:
+            if hand not in self.hands:
+                continue
+            for otherHand in handsInRange:
+                if hand == otherHand:
+                    continue
+                if otherHand not in self.hands:
+                    continue
+                if handComparator(hand, otherHand):
+                    self.hands.remove(otherHand)
+                    self.concentrations[hand[0], hand[1]] += self.concentrations[otherHand[0], otherHand[1]]
+                    self.concentrations[otherHand[0], otherHand[1]] = 0
+
     #Gives this ranges raw equity against a given hand, on a given board
     def equityAgainstHand(self, hand, board=[]):
         allCardsSet = set(board)
@@ -64,6 +87,9 @@ class Range:
         self.removeCards(board)
         if len(self.hands) == 0:
             return None
+
+        #Set concentration val
+        concentration = self.concentrations[hand[0], hand[1]]
 
         #Deck only needed if board on turn, flop, or pre
         currentDeck = Deck()
@@ -86,6 +112,8 @@ class Range:
                     continue
                 wins += currentEquity / 100
                 losses += (100 - currentEquity) / 100
+
+        #If on river:
         else:
             for selfHand in self.hands:
                 selfScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], selfHand[0], selfHand[1])
@@ -96,6 +124,13 @@ class Range:
                     losses += 1
                 else:
                     chops += 1
+
+        #Multiply value by concentration of hand in range
+        wins *= concentration
+        chops *= concentration
+        losses *= concentration
+
+        #Return total equity for range against hand
         return (wins + chops/2)/(wins + chops + losses) * 100
 
     #For representing the board in a string interface
@@ -128,7 +163,6 @@ class Range:
                 TopRow += ' '
 
         return TopRow + '\n' + resultString[:-1]
-                        
 
 if __name__ == "__main__":
     testFullRange = Range()
@@ -136,5 +170,6 @@ if __name__ == "__main__":
     exampleBoard = [49, 20, 16, 12]
     print(testFullRange)
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand((51, 50), exampleBoard))
-
-
+    testFullRange.abstractify(lambda hand1, hand2: hand1[0]//4 == hand2[0]//4 and hand1[1]//4 == hand2[1]//4)
+    print(testFullRange)
+    print(testFullRange.hands)
