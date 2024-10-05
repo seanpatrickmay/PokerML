@@ -14,7 +14,7 @@ from Deck import Deck
 class Range:
 
     #Automatically initialize range to full
-    def __init__(self, hands=None, empty=False):
+    def __init__(self, hands=None, concentrations=None, empty=False):
         self.hands = set()
         self.concentrations = np.zeros((52, 52), dtype=float)
         if empty:
@@ -33,7 +33,7 @@ class Range:
 
 
     def copy(self):
-        return Range(hands=self.hands)
+        return Range(hands=self.hands, concentrations=self.concentrations)
 
     #Returns true if given hand is in range, false otherwise
     def contains(self, hand):
@@ -97,6 +97,9 @@ class Range:
         currentDeck.removeCards(hand)
 
 
+        #FIX THIS !!!! CHANGE SO CONCENTRATION IS FOUND FOR HAND IN RANGE, NOT HAND GIVEN! MULTIPLY BY THAT INSTEAD!
+
+
         #CURRENT ASSUMPTION: Given board is on the river
         #THOUGHTS: Will implement either full runouts for turn and flop, or monte-carlo-like simulations
         wins = 0
@@ -126,10 +129,11 @@ class Range:
                     chops += 1
 
         #Multiply value by concentration of hand in range
-        wins *= concentration
-        chops *= concentration
-        losses *= concentration
+        wins = int(wins * concentration)
+        chops = int(chops * concentration)
+        losses = int(losses * concentration)
 
+        print(wins, chops, losses)
         #Return total equity for range against hand
         return (wins + chops/2)/(wins + chops + losses) * 100
 
