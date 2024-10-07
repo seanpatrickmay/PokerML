@@ -15,25 +15,30 @@ class Range:
 
     #Automatically initialize range to full
     def __init__(self, hands=None, concentrations=None, empty=False):
-        self.hands = set()
-        self.concentrations = np.zeros((52, 52), dtype=float)
+        self.hands =set()
+        
+        #implement this
+        self.redirect = dict()
+
         if empty:
             #Do nothing!
             pass
         else:
             if hands != None:
                 self.hands = hands.copy()
+                self.concentrations = concentrations.copy()
             else:
                 #Full range
                 for firstCard in range(51, -1, -1):
                     for secondCard in range(firstCard - 1, -1, -1):
                         self.hands.add((firstCard, secondCard))
-        for hand in self.hands:
-            self.concentrations[hand[0], hand[1]] = 1
+                self.concentrations = np.zeros((52, 52), dtype=float)
+                for hand in self.hands:
+                    self.concentrations[hand[0], hand[1]] = 1
 
 
     def copy(self):
-        return Range(hands=self.hands, concentrations=self.concentrations)
+        return Range(hands=self.hands.copy(), concentrations=self.concentrations.copy())
 
     #Returns true if given hand is in range, false otherwise
     def contains(self, hand):
@@ -81,15 +86,11 @@ class Range:
         for card in hand:
             allCardsSet.add(card)
         if len(allCardsSet) != len(board) + 2:
-            print('Illegal board/hand combination!')
-            return
+            raise Exception('Illegal board/hand combination!')
         self.removeCards(hand)
         self.removeCards(board)
         if len(self.hands) == 0:
-            return None
-
-        #Set concentration val
-        concentration = self.concentrations[hand[0], hand[1]]
+            return 0
 
         #Deck only needed if board on turn, flop, or pre
         currentDeck = Deck()
@@ -119,21 +120,16 @@ class Range:
         #If on river:
         else:
             for selfHand in self.hands:
+                concentration = self.concentrations[selfHand[0], selfHand[1]]
                 selfScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], selfHand[0], selfHand[1])
                 againstScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], hand[0], hand[1])
                 if selfScore < againstScore:
-                    wins += 1
+                    wins += 1 * concentration
                 elif selfScore > againstScore:
-                    losses += 1
+                    losses += 1 * concentration
                 else:
-                    chops += 1
+                    chops += 1 * concentration
 
-        #Multiply value by concentration of hand in range
-        wins = int(wins * concentration)
-        chops = int(chops * concentration)
-        losses = int(losses * concentration)
-
-        print(wins, chops, losses)
         #Return total equity for range against hand
         return (wins + chops/2)/(wins + chops + losses) * 100
 
@@ -176,4 +172,4 @@ if __name__ == "__main__":
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand((51, 50), exampleBoard))
     testFullRange.abstractify(lambda hand1, hand2: hand1[0]//4 == hand2[0]//4 and hand1[1]//4 == hand2[1]//4)
     print(testFullRange)
-    print(testFullRange.hands)
+    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand((51, 50), exampleBoard))
