@@ -13,7 +13,6 @@ PokerStrategy:
 Range.getEquityAgainstHand:
 - Implement preflop ranges using Monte-Carlo sim to try to find equity. (Will redo this later for greater accuracy)
 - Implement range equity vs hand on flop
-- Fix to use a copy of self.hands. It currently removes cards from self.hands, and doesn't add them back after calculation.
 
 Range.abstractify:
 - Currently takes in a comparator, but there are issues with this, as sets aren't sorted, so gives somewhat random compression.

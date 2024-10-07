@@ -21,7 +21,7 @@ class Range:
         self.redirect = dict()
 
         if empty:
-            #Do nothing!
+            self.concentrations = np.zeros((52, 52), dtype=float)
             pass
         else:
             if hands != None:
@@ -47,11 +47,16 @@ class Range:
     #Removes a hand from the range
     def remove(self, hand):
         self.hands.remove(hand)
-        self.concentrations[hand[0], hand[1]] = 0
+        self.concentrations[hand[0], hand[1]] = min(self.concentrations[hand[0], hand[1]], 1)
 
     #Adds a hand to the range
     def add(self, hand):
         self.hands.add(hand)
+        self.addToConcentration(1, hand)
+
+    #Adds given value to a hands concentration
+    def addToConcentration(self, value, hand):
+        self.concentrations[hand[0], hand[1]] += value
 
     #Removes all hands containing given card from range
     def removeCard(self, card):
@@ -81,17 +86,24 @@ class Range:
                     self.concentrations[otherHand[0], otherHand[1]] = 0
 
     #Gives this ranges raw equity against a given hand, on a given board
-    def equityAgainstHand(self, hand, board=[]):
+    def equityAgainstHand(self, hand, board=[], firstCall=True):
+        #If this is the root call, calls this again on a copy of this board instead.
+        if firstCall:
+            return self.copy().equityAgainstHand(hand, board.copy(), firstCall=False)
 
+        #Make sure hand and board cards don't conflict
         allCardsSet = set(board)
         for card in hand:
             allCardsSet.add(card)
         if len(allCardsSet) != len(board) + 2:
             raise Exception('Illegal board/hand combination!')
         
+        #Remove self hands containing board/hand cards from range
         self.removeCards(hand)
         self.removeCards(board)
         
+        #If no hands in range, equity is zero.
+        #MAYBE THIS SHOULD BE 0.5 ??
         if len(self.hands) == 0:
             return 0
 
@@ -111,17 +123,24 @@ class Range:
         chops = 0
 
         #If on flop:
-        
-      
-        #If on turn:
-        if len(board) == 4:
-            while currentDeck.size() > 0:
-                riverCard = currentDeck.dealCard()
-                currentEquity = self.copy().equityAgainstHand(hand, board.copy() + [riverCard])
+        if len(board) == 3:
+            while currentDeck.size() > 1:
+                turnCard = currentDeck.dealCard()
+                currentEquity = self.copy().equityAgainstHand(hand, board.copy() + [turnCard], firstCall=False)
                 if currentEquity == None:
                     continue
-                wins += currentEquity / 100
-                losses += (100 - currentEquity) / 100
+                wins += currentEquity
+                losses += (1 - currentEquity)
+      
+        #If on turn:
+        elif len(board) == 4:
+            while currentDeck.size() > 0:
+                riverCard = currentDeck.dealCard()
+                currentEquity = self.copy().equityAgainstHand(hand, board.copy() + [riverCard], firstCall=False)
+                if currentEquity == None:
+                    continue
+                wins += currentEquity
+                losses += (1 - currentEquity)
 
         #If on river:
         else:
@@ -137,7 +156,7 @@ class Range:
                     chops += 1 * concentration
 
         #Return total equity for range against hand
-        return (wins + chops/2)/(wins + chops + losses) * 100
+        return (wins + chops/2)/(wins + chops + losses)
 
     #For representing the board in a string interface
     def __str__(self):
@@ -173,9 +192,11 @@ class Range:
 if __name__ == "__main__":
     testFullRange = Range()
     acesHand = (51, 50)
-    exampleBoard = [49, 20, 16, 12]
-    print(testFullRange)
-    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand((51, 50), exampleBoard))
+    exampleBoard = [20, 16, 12]
     testFullRange.abstractify(lambda hand1, hand2: hand1[0]//4 == hand2[0]//4 and hand1[1]//4 == hand2[1]//4)
     print(testFullRange)
-    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand((51, 50), exampleBoard))
+    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand(acesHand, exampleBoard))
+    testFullRange = Range(empty=True)
+    testFullRange.add((8, 4))
+    print(testFullRange)
+    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand(acesHand, exampleBoard))
