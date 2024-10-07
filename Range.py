@@ -82,13 +82,16 @@ class Range:
 
     #Gives this ranges raw equity against a given hand, on a given board
     def equityAgainstHand(self, hand, board=[]):
+
         allCardsSet = set(board)
         for card in hand:
             allCardsSet.add(card)
         if len(allCardsSet) != len(board) + 2:
             raise Exception('Illegal board/hand combination!')
+        
         self.removeCards(hand)
         self.removeCards(board)
+        
         if len(self.hands) == 0:
             return 0
 
@@ -106,6 +109,9 @@ class Range:
         wins = 0
         losses = 0
         chops = 0
+
+        #If on flop:
+        
       
         #If on turn:
         if len(board) == 4:
