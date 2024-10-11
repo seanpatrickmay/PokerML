@@ -1,8 +1,10 @@
 import numpy as np
+import random
 import sys
 from phevaluator import evaluate_cards
 import CardUtils
 from Deck import Deck
+from itertools import combinations
 
 #IDEAS FOR ABSTRACTION:
 # If I can find hands that are identical, given a board, remove all but one from the range.
@@ -86,68 +88,53 @@ class Range:
                     self.concentrations[otherHand[0], otherHand[1]] = 0
 
     #Gives this ranges raw equity against a given hand, on a given board
-    def equityAgainstHand(self, hand, board=[], firstCall=True):
-        #If this is the root call, calls this again on a copy of this board instead.
-        if firstCall:
-            return self.copy().equityAgainstHand(hand, board.copy(), firstCall=False)
+    def equityAgainstHand(self, hand, board=set()):
 
-        #Make sure hand and board cards don't conflict
+        '''    #Make sure hand and board cards don't conflict
         allCardsSet = set(board)
         for card in hand:
             allCardsSet.add(card)
         if len(allCardsSet) != len(board) + 2:
             raise Exception('Illegal board/hand combination!')
-        
-        #Remove self hands containing board/hand cards from range
-        self.removeCards(hand)
-        self.removeCards(board)
-        
-        #If no hands in range, equity is zero.
-        #MAYBE THIS SHOULD BE 0.5 ??
-        if len(self.hands) == 0:
-            return 0
+        '''
 
-        #Deck only needed if board on turn, flop, or pre
+        
+
+        #Create deck to represent cards not in current scenario
+        #ROOM FOR ABSTRACTION ?
         currentDeck = Deck()
         currentDeck.removeCards(board)
         currentDeck.removeCards(hand)
 
-
-        #FIX THIS !!!! CHANGE SO CONCENTRATION IS FOUND FOR HAND IN RANGE, NOT HAND GIVEN! MULTIPLY BY THAT INSTEAD!
-
-
-        #CURRENT ASSUMPTION: Given board is on the river
-        #THOUGHTS: Will implement either full runouts for turn and flop, or monte-carlo-like simulations
+        #Counters for results per hand
         wins = 0
         losses = 0
         chops = 0
 
-        #If on flop:
-        if len(board) == 3:
-            while currentDeck.size() > 1:
-                turnCard = currentDeck.dealCard()
-                currentEquity = self.copy().equityAgainstHand(hand, board.copy() + [turnCard], firstCall=False)
-                if currentEquity == None:
-                    continue
-                wins += currentEquity
-                losses += (1 - currentEquity)
-      
-        #If on turn:
-        elif len(board) == 4:
-            while currentDeck.size() > 0:
-                riverCard = currentDeck.dealCard()
-                currentEquity = self.copy().equityAgainstHand(hand, board.copy() + [riverCard], firstCall=False)
-                if currentEquity == None:
-                    continue
-                wins += currentEquity
-                losses += (1 - currentEquity)
+        #Gets all combinations from remaining cards, evaluates all
+        allMissingBoardCards = list(combinations(currentDeck.cards, 5 - len(board)))
+        for simulationNum in range(len(allMissingBoardCards) // 100):
+        #for missingBoardCards in allMissingBoardCards:
+            #finalBoard = list(missingBoardCards + board)
 
-        #If on river:
-        else:
-            for selfHand in self.hands:
+            finalBoard = random.sample(list(allMissingBoardCards), 1)
+            finalBoard = [card for card in finalBoard[0]]
+            finalBoard += board
+
+            #Remove self hands containing board/hand cards from range
+            copyRange = self.copy()
+            copyRange.removeCards(hand)
+            copyRange.removeCards(finalBoard)
+
+            #If no hands in range, equity is zero.
+            #MAYBE THIS SHOULD BE 0.5 ??
+            if len(copyRange.hands) == 0:
+                return 0
+
+            for selfHand in copyRange.hands:
                 concentration = self.concentrations[selfHand[0], selfHand[1]]
-                selfScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], selfHand[0], selfHand[1])
-                againstScore = evaluate_cards(board[0], board[1], board[2], board[3], board[4], hand[0], hand[1])
+                selfScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], selfHand[0], selfHand[1])
+                againstScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], hand[0], hand[1])
                 if selfScore < againstScore:
                     wins += 1 * concentration
                 elif selfScore > againstScore:
@@ -192,11 +179,10 @@ class Range:
 if __name__ == "__main__":
     testFullRange = Range()
     acesHand = (51, 50)
-    exampleBoard = [20, 16, 12]
+    exampleBoard = (20, 16, 12)
     testFullRange.abstractify(lambda hand1, hand2: hand1[0]//4 == hand2[0]//4 and hand1[1]//4 == hand2[1]//4)
     print(testFullRange)
+    
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand(acesHand, exampleBoard))
-    testFullRange = Range(empty=True)
-    testFullRange.add((8, 4))
-    print(testFullRange)
-    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand(acesHand, exampleBoard))
+    print('Equity of this range against', CardUtils.numsToCards(acesHand), 'pre-flop is',  testFullRange.equityAgainstHand(acesHand, ()))
+
