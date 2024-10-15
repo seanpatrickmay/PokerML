@@ -11,3 +11,40 @@ def numsToCards(nums):
     for num in nums:
         cardsString += numToCard(num)
     return cardsString
+
+def handComparator(hand1, hand2):
+    firstRankDiff = hand1[0]//4 - hand2[0]//4
+    secondRankDiff = hand1[1]//4 - hand2[1]//4
+    if firstRankDiff != 0:
+        return firstRankDiff
+    elif secondRankDiff != 0:
+        return secondRankDiff
+    firstSuitDiff = hand1[0]%4 - hand2[0]%4
+    secondSuitDiff = hand1[1]%4 - hand2[1]%4
+    if firstSuitDiff != 0:
+        return firstSuitDiff
+    elif secondRankDiff !=0:
+        return secondSuitDiff
+
+def handToValue(hand):
+    return hand[0] * 100 + hand[1]
+
+def suitDifferenceAbstraction(handSet, concentrationsSet):
+    handList = list(handSet)
+    handList.sort(key=handToValue, reverse=True)
+    for hand1Index in range(len(handList)):
+        hand1 = handList[hand1Index]
+        if hand1 not in handSet:
+            continue
+        for hand2Index in range(hand1Index + 1, len(handList), 1):
+            hand2 = handList[hand2Index]
+            if hand2 not in handSet:
+                continue
+            #If ranks are the same and difference between suits are the same: True
+            if hand1[0]//4 == hand2[0]//4 and hand1[1]//4 == hand2[1]//4:
+                if abs(hand1[0]%4 - hand1[1]%4) == abs(hand2[0]%4 - hand2[1]%4):
+                    handSet.remove(hand2)
+                    concentrationsSet[hand1[0], hand1[1]] += concentrationsSet[hand2[0], hand2[1]]
+                    concentrationsSet[hand2[0], hand2[1]] = 0
+
+    return handSet, concentrationsSet

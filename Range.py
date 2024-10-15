@@ -17,8 +17,9 @@ class Range:
 
     #Automatically initialize range to full
     def __init__(self, hands=None, concentrations=None, empty=False):
-        self.hands =set()
-        
+        self.hands = set()
+        self.concentrationPrint = False
+
         #implement this
         self.redirect = dict()
 
@@ -49,12 +50,15 @@ class Range:
     #Removes a hand from the range
     def remove(self, hand):
         self.hands.remove(hand)
-        self.concentrations[hand[0], hand[1]] = min(self.concentrations[hand[0], hand[1]], 1)
+        concentration = self.concentrations[hand[0], hand[1]]
+        self.concentrations[hand[0], hand[1]] = 0
+        return concentration
 
     #Adds a hand to the range
-    def add(self, hand):
+    def add(self, hand, concentration=1):
         self.hands.add(hand)
-        self.addToConcentration(1, hand)
+        self.addToConcentration(concentration, hand)
+        return self.concentrations[hand[0], hand[1]]
 
     #Adds given value to a hands concentration
     def addToConcentration(self, value, hand):
@@ -72,54 +76,35 @@ class Range:
             self.removeCard(card)
 
     #Given a hand comparator, simplifies range by removing duplicates, changes range concentrations to match
-    def abstractify(self, handComparator):
-        handsInRange = self.hands.copy()
-        for hand in handsInRange:
-            if hand not in self.hands:
-                continue
-            for otherHand in handsInRange:
-                if hand == otherHand:
-                    continue
-                if otherHand not in self.hands:
-                    continue
-                if handComparator(hand, otherHand):
-                    self.hands.remove(otherHand)
-                    self.concentrations[hand[0], hand[1]] += self.concentrations[otherHand[0], otherHand[1]]
-                    self.concentrations[otherHand[0], otherHand[1]] = 0
+    def abstractify(self, handSimplifier):
+        newHandsInRange, newConcentrations = handSimplifier(self.hands.copy(), self.concentrations.copy())
+        self.hands = newHandsInRange
+        self.concentrations = newConcentrations
+
+    def printAsConcentration(self, toggle=True):
+        self.concentrationPrint = toggle
 
     #Gives this ranges raw equity against a given hand, on a given board
     def equityAgainstHand(self, hand, board=set()):
 
-        '''    #Make sure hand and board cards don't conflict
-        allCardsSet = set(board)
-        for card in hand:
-            allCardsSet.add(card)
-        if len(allCardsSet) != len(board) + 2:
-            raise Exception('Illegal board/hand combination!')
-        '''
-
-        
-
         #Create deck to represent cards not in current scenario
-        #ROOM FOR ABSTRACTION ?
         currentDeck = Deck()
-        currentDeck.removeCards(board)
+        currentDeck.removeCards(board) #There may be room for abstraction here
         currentDeck.removeCards(hand)
 
         #Counters for results per hand
         wins = 0
-        losses = 0
-        chops = 0
+        totalHands = 0
 
-        #Gets all combinations from remaining cards, evaluates all
+        #Monte-Carlo factor
+        mcf = max(10**(3-len(board)), 1)
+
+        #Gets all combinations from remaining cards, evaluates amount corresponding to MCF
         allMissingBoardCards = list(combinations(currentDeck.cards, 5 - len(board)))
-        for simulationNum in range(len(allMissingBoardCards) // 100):
-        #for missingBoardCards in allMissingBoardCards:
-            #finalBoard = list(missingBoardCards + board)
+        for simulationNum in range(len(allMissingBoardCards) // mcf):
 
-            finalBoard = random.sample(list(allMissingBoardCards), 1)
-            finalBoard = [card for card in finalBoard[0]]
-            finalBoard += board
+            #Get board for current sim
+            finalBoard = [card for card in random.sample(allMissingBoardCards, 1)[0]] + list(board)
 
             #Remove self hands containing board/hand cards from range
             copyRange = self.copy()
@@ -127,23 +112,22 @@ class Range:
             copyRange.removeCards(finalBoard)
 
             #If no hands in range, equity is zero.
-            #MAYBE THIS SHOULD BE 0.5 ??
-            if len(copyRange.hands) == 0:
-                return 0
+            if len(copyRange.hands) == 0: return 0 #Maybe this should be 0.5?
 
+            #Score for other hand
+            againstScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], hand[0], hand[1])
+
+            #Find result for every hand in range
             for selfHand in copyRange.hands:
-                concentration = self.concentrations[selfHand[0], selfHand[1]]
+                concentration = self.concentrations[selfHand]
                 selfScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], selfHand[0], selfHand[1])
-                againstScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], hand[0], hand[1])
-                if selfScore < againstScore:
-                    wins += 1 * concentration
-                elif selfScore > againstScore:
-                    losses += 1 * concentration
-                else:
-                    chops += 1 * concentration
+                if selfScore < againstScore: wins += 1 * concentration
+                elif selfScore == againstScore: wins += 0.5 * concentration
+                totalHands += concentration
 
         #Return total equity for range against hand
-        return (wins + chops/2)/(wins + chops + losses)
+        if wins == 0: return 0
+        else: return wins / totalHands
 
     #For representing the board in a string interface
     def __str__(self):
@@ -152,7 +136,10 @@ class Range:
             matrix.append([])
             for y in range(52):
                 if (x, y) in self.hands:
-                    matrix[x].append('X')
+                    if self.concentrationPrint:
+                        matrix[x].append(str(int(self.concentrations[x, y])))
+                    else:
+                        matrix[x].append('X')
                 else:
                     matrix[x].append(' ')
 
@@ -177,12 +164,16 @@ class Range:
         return TopRow + '\n' + resultString[:-1]
 
 if __name__ == "__main__":
+
+    #TEST ENV:
     testFullRange = Range()
     acesHand = (51, 50)
     exampleBoard = (20, 16, 12)
-    testFullRange.abstractify(lambda hand1, hand2: hand1[0]//4 == hand2[0]//4 and hand1[1]//4 == hand2[1]//4)
+
+    testFullRange.abstractify(CardUtils.suitDifferenceAbstraction)
     print(testFullRange)
-    
+    testFullRange.printAsConcentration()
+    print(testFullRange)
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand(acesHand, exampleBoard))
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'pre-flop is',  testFullRange.equityAgainstHand(acesHand, ()))
 
