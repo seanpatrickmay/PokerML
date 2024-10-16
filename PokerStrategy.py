@@ -19,6 +19,13 @@ class EquityBasedPokerStrategy:
     def getEquityRatio(self, board):
         #DOES NOTHING CURRENTLY
 
-    def getBettingFrequency
+    def getBettingFrequency(self, board):
+        
 
     def getBettingSize
+
+    def bucketHands(self, buckets):
+        
+
+if __name__ == "__main__":
+    

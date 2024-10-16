@@ -85,7 +85,7 @@ class Range:
         self.concentrationPrint = toggle
 
     #Gives this ranges raw equity against a given hand, on a given board
-    def equityAgainstHand(self, hand, board=set()):
+    def equityAgainstHand(self, hand, board=set(), equitySquared = False, giveHandEquity = False):
 
         #Create deck to represent cards not in current scenario
         currentDeck = Deck()
@@ -93,8 +93,8 @@ class Range:
         currentDeck.removeCards(hand)
 
         #Counters for results per hand
-        wins = 0
-        totalHands = 0
+        equities = 0
+        simulationsDone = 0
 
         #Monte-Carlo factor
         mcf = max(10**(3-len(board)), 1)
@@ -112,22 +112,32 @@ class Range:
             copyRange.removeCards(finalBoard)
 
             #If no hands in range, equity is zero.
-            if len(copyRange.hands) == 0: return 0 #Maybe this should be 0.5?
+            if len(copyRange.hands) == 0: continue #Maybe this should be 0.5?
 
             #Score for other hand
             againstScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], hand[0], hand[1])
 
             #Find result for every hand in range
+            wins = 0
+            totalHands = 0
             for selfHand in copyRange.hands:
                 concentration = self.concentrations[selfHand]
                 selfScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], selfHand[0], selfHand[1])
                 if selfScore < againstScore: wins += 1 * concentration
                 elif selfScore == againstScore: wins += 0.5 * concentration
                 totalHands += concentration
+            if giveHandEquity:
+                wins = totalHands - wins
+            if equitySquared:
+                equities += (wins / totalHands)**2
+            else:
+                equities += wins / totalHands
+
+            #Incr sim nums
+            simulationsDone += 1
 
         #Return total equity for range against hand
-        if wins == 0: return 0
-        else: return wins / totalHands
+        return equities/simulationsDone
 
     #For representing the board in a string interface
     def __str__(self):
@@ -170,7 +180,8 @@ if __name__ == "__main__":
     acesHand = (51, 50)
     exampleBoard = (20, 16, 12)
 
-    testFullRange.abstractify(CardUtils.suitDifferenceAbstraction)
+    testFullRange.abstractify(CardUtils.suitedAbstraction)
+    testFullRange.abstractify(CardUtils.offsuitAbstraction)
     print(testFullRange)
     testFullRange.printAsConcentration()
     print(testFullRange)
