@@ -27,6 +27,9 @@ for card in range(13):
             equities += simplifiedRange.equityAgainstHand(hand, equitySquared=True, giveHandEquity=True)
     equities /= 6
     handEquities[str(card) + ' ' + str(card)] = equities
+    #After all found, output to file
+    with open("preFlopEquities.json", "w") as file:
+        json.dump(handEquities, file, indent=3)
 
 #Next, suited hands:
 for firstCard in range(12, -1, -1):
@@ -38,6 +41,9 @@ for firstCard in range(12, -1, -1):
             equities += simplifiedRange.equityAgainstHand(hand, equitySquared=True, giveHandEquity=True)
         equities /= 4
         handEquities[str(firstCard) + ' ' + str(secondCard) + ' s'] = equities
+        #After all found, output to file
+        with open("preFlopEquities.json", "w") as file:
+            json.dump(handEquities, file, indent=3)
 
 #Finally, offsuit hands:
 for firstCard in range(12, -1, -1):
@@ -52,7 +58,7 @@ for firstCard in range(12, -1, -1):
                 equities += simplifiedRange.equityAgainstHand(hand, equitySquared=True, giveHandEquity=True)
         equities /= 12
         handEquities[str(firstCard) + ' ' + str(secondCard) + ' o'] = equities
+        #After all found, output to file
+        with open("preFlopEquities.json", "w") as file:
+            json.dump(handEquities, file, indent=3)
 
-#After all found, output to file
-with open("preFlopEquities.json", "w") as file:
-    json.dump(handEquities, file, indent=3)

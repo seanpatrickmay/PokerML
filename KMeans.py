@@ -15,25 +15,26 @@ class KMeans:
         return means
 
 if __name__ == "__main__":
-    with open('preFlopEquities.json') as file:
+    with open('preFlopEquitiesSqRootLong.json') as file:
         data = json.load(file)
     equityPoints = list(data.values())
     preEquityKMeans = KMeans(equityPoints)
-    means = preEquityKMeans.getKMeans(10)
-    print(means)
+    means = preEquityKMeans.getKMeans(20)
+#    print(means)
     buckets = {mean: [] for mean in means}
     for key, value in data.items():
         smallestDiff = 100
         closestMean = -1
         for mean in means:
-            print('smallestDiff:', smallestDiff)
-            print('closestMean:', closestMean)
-            print('currDistance:', abs(mean - value))
-            print()
+#            print('smallestDiff:', smallestDiff)
+#            print('closestMean:', closestMean)
+#            print('currDistance:', abs(mean - value))
+#            print()
             if abs(mean - value) < smallestDiff:
                 closestMean = mean
                 smallestDiff = abs(mean - value)
         buckets[closestMean] += [key]
-    for key, value in buckets.items():
-        print(key, CardUtils.listNumStringsToListHands(value), '\n')
+    sortedKeys = sorted(buckets.keys())
+    for key in sortedKeys:
+        print(key, CardUtils.listNumStringsToListHands(buckets[key]), '\n')
          

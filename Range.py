@@ -12,7 +12,7 @@ from itertools import combinations
 # The default vals for this array will all be 1. np.ones(52, 52)
 # Implement abstractify function, takes in a function to compare hands, edits concentrations
 
-#Class to reoresent a range of two-card hands
+#Class to represent a range of two-card hands
 class Range:
 
     #Automatically initialize range to full
@@ -97,7 +97,7 @@ class Range:
         simulationsDone = 0
 
         #Monte-Carlo factor
-        mcf = max(10**(3-len(board)), 1)
+        mcf = max(10**(2-len(board)), 1)
 
         #Gets all combinations from remaining cards, evaluates amount corresponding to MCF
         allMissingBoardCards = list(combinations(currentDeck.cards, 5 - len(board)))

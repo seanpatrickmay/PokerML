@@ -8,7 +8,7 @@ PokerStrategy:
 
 - Is the idea of giving an opponent range and self range in the constructor valid? Maybe that should be fed dynamically. This way the strategy doesn't have to update the range itself.
 
--Currently assuming 1 bet size. I think this is best for now.
+- Currently assuming 1 bet size. I think this is best for now.
 
 Range.getEquityAgainstHand:
-- Implement preflop ranges using Monte-Carlo sim to try to find equity. (Will redo this later for greater accuracy)
+- For monte-carlo, currently randomly grabs board from set. This makes it so it can grab the same board multiple times. Should I change this?
