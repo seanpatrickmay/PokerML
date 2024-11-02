@@ -81,11 +81,11 @@ class Range:
         self.hands = newHandsInRange
         self.concentrations = newConcentrations
 
-    def printAsConcentration(self, toggle=True):
-        self.concentrationPrint = toggle
-
     #Gives this ranges raw equity against a given hand, on a given board
     def equityAgainstHand(self, hand, board=set(), equitySquared = False, giveHandEquity = False):
+        for card in board:
+            if card in hand:
+                return 0
 
         #Create deck to represent cards not in current scenario
         currentDeck = Deck()
@@ -115,6 +115,11 @@ class Range:
             if len(copyRange.hands) == 0: continue #Maybe this should be 0.5?
 
             #Score for other hand
+        #    for num in range(5):
+        #        print(finalBoard[num])
+        #    print(hand[0])
+        #    print(hand[1])
+        #    print("\n")
             againstScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], hand[0], hand[1])
 
             #Find result for every hand in range
@@ -137,7 +142,12 @@ class Range:
             simulationsDone += 1
 
         #Return total equity for range against hand
+        if (simulationsDone == 0):
+            return equities
         return equities/simulationsDone
+
+    def printAsConcentration(self, toggle=True):
+        self.concentrationPrint = toggle
 
     #For representing the board in a string interface
     def __str__(self):
@@ -187,4 +197,3 @@ if __name__ == "__main__":
     print(testFullRange)
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand(acesHand, exampleBoard))
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'pre-flop is',  testFullRange.equityAgainstHand(acesHand, ()))
-

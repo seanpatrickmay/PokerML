@@ -16,7 +16,8 @@ class Deck:
 
     def removeCards(self, cards):
         for card in cards:
-            self.cards.remove(card)
+            if card in self.cards:
+                self.cards.remove(card)
 
     def dealCard(self):
         return self.cards.pop()

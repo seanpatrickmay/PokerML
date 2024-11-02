@@ -12,3 +12,4 @@ PokerStrategy:
 
 Range.getEquityAgainstHand:
 - For monte-carlo, currently randomly grabs board from set. This makes it so it can grab the same board multiple times. Should I change this?
+- Currently has option to get equity squared. It does this by squaring the eqiuty after each board for each hand. I should instead do each board, then for each hand, add the value to a list, and then for the hand, compare every single hand for each board, square that, and get average of all of those. Perhaps?
