@@ -1,13 +1,6 @@
 PokerStrategy:
-- Figure out nut equity cutoff
-- Figure out range vs range nut ratio for bet sizing
-- Figure out equity ratio for bet frequency
-- Figure out hand equity cutoff for bet or check
 - Lots of ideas with choosing bluffs. Pick from bottom of range (outside of calling range)?
 - Same with mixing? How do I determine what % a nutted hand should check to uncap checking range?
-
-- Is the idea of giving an opponent range and self range in the constructor valid? Maybe that should be fed dynamically. This way the strategy doesn't have to update the range itself.
-
 - Currently assuming 1 bet size. I think this is best for now.
 
 Range.getEquityAgainstHand:
@@ -22,3 +15,6 @@ GetEquityFromBetSizing:
 - This method should recursively calculate the equity if opponent calls/folds + equity if opponent raises (recurse)
 - This method should also take into account stack sizes, 10x pot, even if super polarized, is not best with an SPR of 1. I think bet sizes should be a list up to and including SPR.
 - If spr is 0, no need to recurse.
+
+
+How do I represent a bet when I am calling the getBestSizing function? I need to find the EV of calling first. Then I can compare the EV of calling to that of raising

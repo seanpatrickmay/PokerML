@@ -3,7 +3,7 @@ import CardUtils
 import PokerNode
 
 # Expressed in # of pots
-BET_SIZINGS = (0, 1/3, 3/4, 3/2, 3, 10)
+BET_SIZINGS = (0, 1/4, 1/3, 1/2, 3/4, 1, 4/3, 3/2, 2, 3, 5, 10)
 
 # Class for representing minimax strategy
 # Currently make assumption that we either bet entire range or check
@@ -33,7 +33,8 @@ def getNodeEV(pokerNode):
 # Therefore, our EV is 5/6 * -1/2 + 1/6 * 2 = -5/12 + 4/12 = -1/12. < 1/2: Bad bet.
 # Similarly, if we bet 1/4: EV is 5/8 * -1/4 + 3/8 * 3/2 = -5/32 + 18/32 = 13/32: Bad bet.
 # Therefore, we get EV of bet is: P(win) * (Pot + Bet * 2) - P(lose) * Bet
-# P(win) can be calculated as: MDF - Equity. Also: 1 - Bet / (Bet + Pot) - Equity
+# P(win) can be calculated as max(0, (E - alpha)) / mindef
+# or: 
 # P(lose) is just 1 -  P(win), so: Bet / (Bet + Pot) + Equity
 
 # Putting this together, we get the formula for EV of betting size B given hand with equity E and pot size 1:
@@ -52,28 +53,29 @@ def getNodeEV(pokerNode):
 # So, simply, to find the best sizing, we choose which sizing value maximises the EV of the range
 
 
-def betExpectedValue(hand, board, opponentRange, sizing):
+def betExpectedValue(hand, heroRange, board, sizing):
     B = sizing
-    E = opponentRange.equityAgainstHand(hand, board, giveHandEquity=True)
+    E = heroRange.getEquity(hand)
     alpha = B / (B + 1)
     mindef = 1 - alpha
     pwin = max(0, (E - alpha)) / mindef
     plose = 1 - pwin
     return (pwin * (1 + 2 * B) - plose * B) * mindef + 1 * alpha
 
-def getTotalValueFromSizing(heroRange, opponentRange, board, sizing):
+def getTotalValueFromSizing(heroRange, board, sizing):
     totalValue = 0
     for hand in heroRange.hands:
-        EV = betExpectedValue(hand, board, opponentRange, sizing)
-        print(f"EV of hand {CardUtils.numsToCards(hand)} with sizing {sizing} is {EV}")
+        EV = betExpectedValue(hand, heroRange, board, sizing)
+        #print(f"EV of hand {CardUtils.numsToCards(hand)} with sizing {sizing} is {EV}")
         totalValue += max(0, EV)
     return totalValue
 
 def getBestSizingForRange(heroRange, opponentRange, board, sizings=BET_SIZINGS):
     bestSizing = -1
     bestValue = -1
+    heroRange.setEquitiesAgainstRange(opponentRange, board)
     for sizing in sizings:
-        sizingValue = getTotalValueFromSizing(heroRange, opponentRange, board, sizing)
+        sizingValue = getTotalValueFromSizing(heroRange, board, sizing)
         print(f"Sizing Value for {sizing} is: {sizingValue}")
         if sizingValue > bestValue:
             bestSizing = sizing

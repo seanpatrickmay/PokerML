@@ -16,10 +16,12 @@ from itertools import combinations
 class Range:
 
     #Automatically initialize range to full
-    def __init__(self, hands=None, concentrations=None, empty=False):
+    def __init__(self, hands=None, concentrations=None, equities=None, empty=False):
         self.hands = set()
         self.concentrationPrint = False
+        self.equities = np.zeros((52, 52))
 
+        #Feature for hand bucketing. Will be a table for redirecting hands to bucket
         #implement this
         self.redirect = dict()
 
@@ -145,6 +147,14 @@ class Range:
         if (simulationsDone == 0):
             return equities
         return equities/simulationsDone
+
+    def setEquitiesAgainstRange(self, otherRange, board=[]):
+        self.equities = np.zeros((52, 52))
+        for hand in self.hands:
+            self.equities[hand] = otherRange.equityAgainstHand(hand, board, giveHandEquity=True)
+
+    def getEquity(self, hand):
+        return self.equities[hand]
 
     def printAsConcentration(self, toggle=True):
         self.concentrationPrint = toggle
