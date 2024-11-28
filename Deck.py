@@ -9,10 +9,14 @@ import CardUtils
 class Deck:
 
     #Sets up new deck with all cards
-    def __init__(self, shuffled=True):
-        self.cards = [num for num in range(52)]
-        if shuffled:
-            random.shuffle(self.cards)
+    def __init__(self, shuffled=True, cards=None):
+        if cards:
+            self.cards = cards.copy()
+        else:
+            self.cards = [num for num in range(52)]
+            if shuffled:
+                random.shuffle(self.cards)
+
 
     def removeCards(self, cards):
         for card in cards:
@@ -24,6 +28,9 @@ class Deck:
 
     def size(self):
         return len(self.cards)
+
+    def copy(self):
+        return Deck(cards=self.cards)
 
 if __name__ == '__main__':
     newDeck = Deck()

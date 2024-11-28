@@ -18,3 +18,16 @@ GetEquityFromBetSizing:
 
 
 How do I represent a bet when I am calling the getBestSizing function? I need to find the EV of calling first. Then I can compare the EV of calling to that of raising
+
+
+
+
+
+GENERAL MINIMAX ROADMAP:
+
+Given node:
+Calculate best sizing for range
+Done by:
+Calculating EV of bet + 
+
+

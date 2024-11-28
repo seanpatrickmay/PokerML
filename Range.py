@@ -16,10 +16,11 @@ from itertools import combinations
 class Range:
 
     #Automatically initialize range to full
-    def __init__(self, hands=None, concentrations=None, equities=None, empty=False):
+    def __init__(self, hands=None, concentrations=np.zeros((52, 52), dtype=float), equities=None, empty=False):
         self.hands = set()
         self.concentrationPrint = False
         self.equities = np.zeros((52, 52))
+        self.concentrations=concentrations
 
         #Feature for hand bucketing. Will be a table for redirecting hands to bucket
         #implement this
@@ -27,17 +28,19 @@ class Range:
 
         if empty:
             self.concentrations = np.zeros((52, 52), dtype=float)
-            pass
         else:
             if hands != None:
                 self.hands = hands.copy()
-                self.concentrations = concentrations.copy()
+                if concentrations.any():
+                    self.concentrations = concentrations.copy()
+                else:
+                    for hand in self.hands:
+                        self.concentrations[hand] = 1
             else:
                 #Full range
                 for firstCard in range(51, -1, -1):
                     for secondCard in range(firstCard - 1, -1, -1):
                         self.hands.add((firstCard, secondCard))
-                self.concentrations = np.zeros((52, 52), dtype=float)
                 for hand in self.hands:
                     self.concentrations[hand[0], hand[1]] = 1
 
@@ -89,6 +92,9 @@ class Range:
             if card in hand:
                 return 0
 
+        if len(self.hands) == 0:
+            return 0
+
         #Create deck to represent cards not in current scenario
         currentDeck = Deck()
         currentDeck.removeCards(board) #There may be room for abstraction here
@@ -99,7 +105,7 @@ class Range:
         simulationsDone = 0
 
         #Monte-Carlo factor
-        mcf = max(10**(2-len(board)), 1)
+        mcf = max(10**(4-len(board)), 1)
 
         #Gets all combinations from remaining cards, evaluates amount corresponding to MCF
         allMissingBoardCards = list(combinations(currentDeck.cards, 5 - len(board)))
@@ -151,7 +157,23 @@ class Range:
     def setEquitiesAgainstRange(self, otherRange, board=[]):
         self.equities = np.zeros((52, 52))
         for hand in self.hands:
-            self.equities[hand] = otherRange.equityAgainstHand(hand, board, giveHandEquity=True)
+            self.equities[hand] = 1 - otherRange.equityAgainstHand(hand, board)
+
+    def equityAgainstRange(self, otherRange, board=[]):
+        self.setEquitiesAgainstRange(otherRange, board)
+        totalHands = 0
+        totalEquity = 0
+        for hand in self.hands:
+            handConcentration = self.concentrations[hand]
+            totalHands += handConcentration
+            totalEquity += self.equities[hand] * handConcentration
+        if totalHands == 0:
+            return 0
+        return totalEquity / totalHands
+
+    def getNumCombos(self):
+        return np.sum(self.concentrations)
+
 
     def getEquity(self, hand):
         return self.equities[hand]
@@ -207,3 +229,10 @@ if __name__ == "__main__":
     print(testFullRange)
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'on board', CardUtils.numsToCards(exampleBoard), 'is',  testFullRange.equityAgainstHand(acesHand, exampleBoard))
     print('Equity of this range against', CardUtils.numsToCards(acesHand), 'pre-flop is',  testFullRange.equityAgainstHand(acesHand, ()))
+    
+    secondTestRange = Range()
+    for card in range(52):
+        secondTestRange.removeCard(card)
+    secondTestRange.add(acesHand)
+
+    print(secondTestRange.equityAgainstRange(testFullRange, ()))
