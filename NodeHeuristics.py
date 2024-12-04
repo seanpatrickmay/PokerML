@@ -49,6 +49,7 @@ def betExpectedValue(hand, heroRange, board, sizing):
     E = heroRange.getEquity(hand)
     alpha = B / (B + 1)
     mindef = 1 - alpha
+    # 1 / (B + 1)
     pwin = max(0, (E - alpha)) / mindef
     plose = 1 - pwin
     return (pwin * (1 + 2 * B) - plose * B) * mindef + 1 * alpha
@@ -121,9 +122,10 @@ def getBestSizingForRange(heroRange, opponentRange, board, sizings=BET_SIZINGS):
     return bestSizing
 
 def getBetHands(heroRange, opponentRange, board, sizing):
-    heroRange.setEquitiesAgainstRange(opponentRange, board)
     betHands = set()
     for hand in heroRange.hands:
+    #    print(f"Bet EV for size: {sizing} with hand: {CardUtils.numsToCards(hand)} is: {betExpectedValue(hand, heroRange, board, sizing)}")
+    #    print(f"Equity for hand is: {heroRange.getEquity(hand)}")
         if betExpectedValue(hand, heroRange, board, sizing) > heroRange.getEquity(hand):
             betHands.add(hand)
     return betHands
@@ -139,9 +141,10 @@ def getBluffHands(heroRange, numNeeded, excludedHands):
     return bluffs
 
 def getBetAndBluffs(heroRange, opponentRange, board, sizing):
+    heroRange.setEquitiesAgainstRange(opponentRange, board)
     bets = getBetHands(heroRange, opponentRange, board, sizing)
     bluffsNeeded = (1 - (sizing / (sizing + 1))) * len(bets)
-    print(f"Bluffs needed for {len(bets)} value bets with sizing {sizing}: {bluffsNeeded}")
+    #print(f"Bluffs needed for {len(bets)} value bets with sizing {sizing}: {bluffsNeeded}")
     bluffs = getBluffHands(heroRange, bluffsNeeded, bets)
     return bets, bluffs
 
@@ -160,7 +163,6 @@ def getCallRange(heroRange, opponentRange, board, sizing):
     alpha = sizing / (sizing + 1)
     mindef = 1 - alpha
     combosNeeded = len(heroRange.hands) * mindef
-    print(f"Defend combos needed: {combosNeeded}")
     heroRange.setEquitiesAgainstRange(opponentRange, board)
     handsList = list(heroRange.hands)
     handsList.sort(key=lambda hand: heroRange.equities[hand], reverse=True)

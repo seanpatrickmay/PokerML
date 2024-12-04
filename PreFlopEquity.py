@@ -24,7 +24,7 @@ for card in range(13):
         for secondSuit in range(firstSuit + 1, 4):
             hand = (card * 4 + firstSuit, card * 4 + secondSuit)
             print(CardUtils.numsToCards(hand))
-            equities += simplifiedRange.equityAgainstHand(hand, equitySquared=True, giveHandEquity=True)
+            equities += simplifiedRange.equityAgainstHand(hand, equitySquared=False, giveHandEquity=True)
     equities /= 6
     handEquities[str(card) + ' ' + str(card)] = equities
     #After all found, output to file
@@ -38,7 +38,7 @@ for firstCard in range(12, -1, -1):
         for suit in range(4):
             hand = (firstCard * 4 + suit, secondCard * 4 + suit)
             print(CardUtils.numsToCards(hand))
-            equities += simplifiedRange.equityAgainstHand(hand, equitySquared=True, giveHandEquity=True)
+            equities += simplifiedRange.equityAgainstHand(hand, equitySquared=False, giveHandEquity=True)
         equities /= 4
         handEquities[str(firstCard) + ' ' + str(secondCard) + ' s'] = equities
         #After all found, output to file
@@ -55,7 +55,7 @@ for firstCard in range(12, -1, -1):
                     continue
                 hand = (firstCard * 4 + firstSuit, secondCard * 4 + secondSuit)
                 print(CardUtils.numsToCards(hand))
-                equities += simplifiedRange.equityAgainstHand(hand, equitySquared=True, giveHandEquity=True)
+                equities += simplifiedRange.equityAgainstHand(hand, equitySquared=False, giveHandEquity=True)
         equities /= 12
         handEquities[str(firstCard) + ' ' + str(secondCard) + ' o'] = equities
         #After all found, output to file

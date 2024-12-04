@@ -4,7 +4,7 @@ import CardUtils
 #Class for representing a gamestate node in HU NLHE
 
 class PokerNode:
-    def __init__(self, hero, villain, turn, position, weight=1, parent=None, board=[], pot=0, deck=Deck(), debt=0, bets=0, name='Unnamed'):
+    def __init__(self, hero, villain, turn, position, weight=1, parent=None, board=[], pot=0, deck=Deck(), debt=0, bets=0, name='Unnamed', EV=None):
         self.parent = parent
         self.board = board.copy()
         self.hero = hero.copy()
@@ -24,6 +24,8 @@ class PokerNode:
         self.position = position
         # What is the chance of this node occuring?
         self.weight = weight
+        # Set the EV initially to none
+        self.EV = EV
 
 
     def __str__(self):
@@ -33,5 +35,5 @@ class PokerNode:
         position = "Villain"
         if self.position:
             position = "Hero"
-        return f"Pot: {self.pot} + Bet: {self.debt} | {CardUtils.numsToCards(self.board)} | Action: {turn} | Position: {position}\nHero: {self.hero.chips}$ {CardUtils.numsToCards(self.hero.hand)} ||| Villain: {self.villain.chips}$ {CardUtils.numsToCards(self.villain.hand)} | Weight: {self.weight}\nNode name: {self.name}\n" 
+        return f"Pot: {self.pot} + Bet: {self.debt} | {CardUtils.numsToCards(self.board)} | Action: {turn} | Position: {position}\nHero: {self.hero.chips}$ {CardUtils.numsToCards(self.hero.hand)} ||| Villain: {self.villain.chips}$ {CardUtils.numsToCards(self.villain.hand)} | Weight: {self.weight}\nNode name: {self.name} | Node EV: {self.EV}\n" 
         

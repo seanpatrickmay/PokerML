@@ -134,7 +134,7 @@ class Range:
             wins = 0
             totalHands = 0
             for selfHand in copyRange.hands:
-                concentration = self.concentrations[selfHand]
+                concentration = 1
                 selfScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], selfHand[0], selfHand[1])
                 if selfScore < againstScore: wins += 1 * concentration
                 elif selfScore == againstScore: wins += 0.5 * concentration

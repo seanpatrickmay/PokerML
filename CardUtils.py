@@ -12,6 +12,43 @@ def numsToCards(nums):
         cardsString += numToCard(num)
     return cardsString
 
+def textToHand(text):
+    firstRank = rankStrings.index(text[0])
+    secondRank = rankStrings.index(text[1])
+    return ranksToHands(firstRank, secondRank)
+
+def ranksToHands(firstRank, secondRank):
+    handSet = set()
+    if firstRank != secondRank:
+        for firstCard in range(3, -1, -1):
+            for secondCard in range(3, -1, -1):
+                handSet.add((firstRank * 4 + firstCard, secondRank * 4 + secondCard))
+        return handSet
+    else:
+        for firstCard in range(3, -1, -1):
+            for secondCard in range(firstCard - 1, -1, -1):
+                handSet.add((firstRank * 4 + firstCard, firstRank * 4 + secondCard))
+        return handSet
+
+def textToHandSet(text):
+    allHands = set()
+    hands = text.split(",")
+    for hand in hands:
+        firstRank = rankStrings.index(hand[0])
+        secondRank = rankStrings.index(hand[1])
+        if "+" in hand:
+            rankDifference = firstRank - secondRank
+            if rankDifference <= 1:
+                for rank in range(firstRank, 13):
+                    allHands = allHands.union(ranksToHands(rank, rank - rankDifference))
+            else:
+                for rank in range(secondRank, firstRank):
+                    allHands = allHands.union(ranksToHands(firstRank, rank))
+        else:
+            allHands = allHands.union(ranksToHands(firstRank, secondRank))
+    return allHands
+
+
 def handComparator(hand1, hand2):
     firstRankDiff = hand1[0]//4 - hand2[0]//4
     secondRankDiff = hand1[1]//4 - hand2[1]//4
@@ -100,3 +137,10 @@ def offsuitAbstraction(handSet, concentrationsSet):
                     concentrationsSet[hand2[0], hand2[1]] = 0
 
     return handSet, concentrationsSet
+
+
+if __name__ == "__main__":
+    print(textToHand("AA"))
+    print(textToHand("AK"))
+    print(textToHandSet("AK,JJ+,AT+"))
+    print(numsToCards((51, 50, 49, 48)))
