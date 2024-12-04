@@ -3,20 +3,24 @@
 rankStrings = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'] 
 suitStrings = ['♣', '♢', '♡', '♠']
 
+# Given integer 0-51, gives String Card
 def numToCard(num):
     return rankStrings[num // 4] + suitStrings[num % 4]
 
+# Gives all cards given integers
 def numsToCards(nums):
     cardsString = ''
     for num in nums:
         cardsString += numToCard(num)
     return cardsString
 
+# Converts text to a hand ex: JJ -> all pocket jacks hands
 def textToHand(text):
     firstRank = rankStrings.index(text[0])
     secondRank = rankStrings.index(text[1])
     return ranksToHands(firstRank, secondRank)
 
+# Given two ranks, gives all hands
 def ranksToHands(firstRank, secondRank):
     handSet = set()
     if firstRank != secondRank:
@@ -30,6 +34,7 @@ def ranksToHands(firstRank, secondRank):
                 handSet.add((firstRank * 4 + firstCard, firstRank * 4 + secondCard))
         return handSet
 
+# Helpful method for making test ranges, JT+ gives suited connectors, and 22+ gives pocket pairs, any other gives A2-K
 def textToHandSet(text):
     allHands = set()
     hands = text.split(",")
@@ -79,7 +84,7 @@ def listNumStringsToListHands(nums):
     newList.sort(key=handToValue)
     return [numsToCards(hand) for hand in newList]
 
-
+# Some abstractions for compressing ranges
 def suitDifferenceAbstraction(handSet, concentrationsSet):
     handList = list(handSet)
     handList.sort(key=handToValue, reverse=True)

@@ -6,12 +6,6 @@ import CardUtils
 from Deck import Deck
 from itertools import combinations
 
-#IDEAS FOR ABSTRACTION:
-# If I can find hands that are identical, given a board, remove all but one from the range.
-# Then, have a matrix same size as array, that provides concentration.
-# The default vals for this array will all be 1. np.ones(52, 52)
-# Implement abstractify function, takes in a function to compare hands, edits concentrations
-
 #Class to represent a range of two-card hands
 class Range:
 
@@ -21,10 +15,6 @@ class Range:
         self.concentrationPrint = False
         self.equities = np.zeros((52, 52))
         self.concentrations=concentrations
-
-        #Feature for hand bucketing. Will be a table for redirecting hands to bucket
-        #implement this
-        self.redirect = dict()
 
         if empty:
             self.concentrations = np.zeros((52, 52), dtype=float)
@@ -37,7 +27,6 @@ class Range:
                     for hand in self.hands:
                         self.concentrations[hand] = 1
             else:
-                #Full range
                 for firstCard in range(51, -1, -1):
                     for secondCard in range(firstCard - 1, -1, -1):
                         self.hands.add((firstCard, secondCard))
@@ -123,11 +112,6 @@ class Range:
             if len(copyRange.hands) == 0: continue #Maybe this should be 0.5?
 
             #Score for other hand
-        #    for num in range(5):
-        #        print(finalBoard[num])
-        #    print(hand[0])
-        #    print(hand[1])
-        #    print("\n")
             againstScore = evaluate_cards(finalBoard[0], finalBoard[1], finalBoard[2], finalBoard[3], finalBoard[4], hand[0], hand[1])
 
             #Find result for every hand in range
@@ -154,11 +138,13 @@ class Range:
             return equities
         return equities/simulationsDone
 
+    # Sets self equities for each hand according to otherRange
     def setEquitiesAgainstRange(self, otherRange, board=[]):
         self.equities = np.zeros((52, 52))
         for hand in self.hands:
             self.equities[hand] = 1 - otherRange.equityAgainstHand(hand, board)
 
+    # Sets self equities, and sums to find average equity
     def equityAgainstRange(self, otherRange, board=[]):
         self.setEquitiesAgainstRange(otherRange, board)
         totalHands = 0
@@ -171,13 +157,15 @@ class Range:
             return 0
         return totalEquity / totalHands
 
+    # Basically size of this range
     def getNumCombos(self):
         return np.sum(self.concentrations)
 
-
+    # Getter for equities
     def getEquity(self, hand):
         return self.equities[hand]
 
+    # Toggle to print this range with concentration values instead of X's
     def printAsConcentration(self, toggle=True):
         self.concentrationPrint = toggle
 
