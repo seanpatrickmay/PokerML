@@ -3,14 +3,10 @@ import numpy as np
 import CardUtils
 from PokerNode import PokerNode
 from PokerPlayer import PokerPlayer
-from Deck import Deck
 import NodeHeuristics
+from Deck import Deck
+from config import BET_SIZINGS, SEARCH_MAX_DEPTH
 
-# Expressed in # of pots
-BET_SIZINGS = (1/3, 1.0, 2.0, 10.0)
-
-# Max recursion depth for tree search. Experimenting with multiple values.
-SEARCH_MAX_DEPTH = 20
 
 # Class for representing minimax strategy
 

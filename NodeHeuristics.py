@@ -1,9 +1,10 @@
 import math
-from Range import Range
 import CardUtils
+from Range import Range
+from config import HEURISTIC_BET_SIZINGS
 
-# Expressed in # of pots                                                                                              
-BET_SIZINGS = (0, 1/4, 1/3, 1/2, 3/4, 1, 4/3, 3/2, 2, 3, 5, 10)
+# Expressed in # of pots
+BET_SIZINGS = HEURISTIC_BET_SIZINGS
 
 
 # Method gives a rough approximation of EV for betting hand with given sizing

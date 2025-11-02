@@ -1,10 +1,11 @@
 import numpy as np
+import CardUtils
 import random
 import sys
 from phevaluator import evaluate_cards
-import CardUtils
 from Deck import Deck
 from itertools import combinations
+from config import MONTE_CARLO_BASE, MONTE_CARLO_DECAY_START, MONTE_CARLO_MIN_SAMPLES
 
 #Class to represent a range of two-card hands
 class Range:
@@ -93,8 +94,9 @@ class Range:
         equities = 0
         simulationsDone = 0
 
-        #Monte-Carlo factor
-        mcf = max(10**(4-len(board)), 1)
+        # Monte Carlo factor scales down as the board fills out, configurable via env vars.
+        exponent = MONTE_CARLO_DECAY_START - len(board)
+        mcf = max(MONTE_CARLO_BASE ** exponent, MONTE_CARLO_MIN_SAMPLES)
 
         #Gets all combinations from remaining cards, evaluates amount corresponding to MCF
         allMissingBoardCards = list(combinations(currentDeck.cards, 5 - len(board)))
