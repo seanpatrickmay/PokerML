@@ -33,12 +33,7 @@
       </div>
 
       <div id="actions">
-        <button onclick="doAction('f')" id="btn-f" class="act fold">Fold</button>
-        <button onclick="doAction('k')" id="btn-k" class="act check">Check</button>
-        <button onclick="doAction('c')" id="btn-c" class="act call">Call</button>
-        <button onclick="doAction('b50')" id="btn-b50" class="act raise">Bet 50%</button>
-        <button onclick="doAction('b100')" id="btn-b100" class="act raise">Bet Pot</button>
-        <button onclick="doAction('a')" id="btn-a" class="act allin">All In</button>
+        <!-- buttons rendered dynamically by app.js -->
       </div>
 
       <div id="result-banner" class="hidden"></div>
@@ -80,8 +75,9 @@
         <span class="leg" style="--c:#c62828">Fold</span>
         <span class="leg" style="--c:#2e7d32">Check</span>
         <span class="leg" style="--c:#1565c0">Call</span>
-        <span class="leg" style="--c:#e65100">Bet 50%</span>
-        <span class="leg" style="--c:#f57c00">Bet Pot</span>
+        <span class="leg" style="--c:#e65100">Small Bet</span>
+        <span class="leg" style="--c:#f57c00">Pot Bet</span>
+        <span class="leg" style="--c:#ff6d00">Overbet</span>
         <span class="leg" style="--c:#6a1b9a">All In</span>
       </div>
 

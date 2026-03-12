@@ -79,6 +79,7 @@ class GameState:
             stack=self.stacks[self.current_player],
             raises_this_street=self.raises_this_street,
             min_raise=self.min_raise,
+            street=self.street,
         )
 
     def apply_action(self, action):

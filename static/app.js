@@ -12,8 +12,40 @@ let selectedCell = null;   // "row,col"
 let myGridPos = null;      // {row,col} of player's actual hand
 
 const RANKS  = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
-const ACT_LBL = {f:'Fold',k:'Check',c:'Call',b50:'Bet 50%',b100:'Bet Pot',a:'All In'};
-const ACT_CLR = {f:'#c62828',k:'#2e7d32',c:'#1565c0',b50:'#e65100',b100:'#f57c00',a:'#6a1b9a'};
+function actLabel(a) {
+  if (a==='f') return 'Fold';
+  if (a==='k') return 'Check';
+  if (a==='c') return 'Call';
+  if (a==='a') return 'All In';
+  if (a.startsWith('b')) {
+    const pct = parseInt(a.slice(1));
+    if (pct === 100) return 'Bet Pot';
+    return `Bet ${pct}%`;
+  }
+  return a;
+}
+function actColor(a) {
+  if (a==='f') return '#c62828';
+  if (a==='k') return '#2e7d32';
+  if (a==='c') return '#1565c0';
+  if (a==='a') return '#6a1b9a';
+  if (a.startsWith('b')) {
+    const pct = parseInt(a.slice(1));
+    if (pct <= 50)  return '#e65100';
+    if (pct <= 100) return '#f57c00';
+    return '#ff6d00';  // overbets
+  }
+  return '#666';
+}
+function actBtnClass(a) {
+  if (a==='f') return 'fold';
+  if (a==='k') return 'check';
+  if (a==='c') return 'call';
+  if (a==='a') return 'allin';
+  return 'raise';
+}
+const ACT_LBL = new Proxy({}, {get:(_,k)=>actLabel(k)});
+const ACT_CLR = new Proxy({}, {get:(_,k)=>actColor(k)});
 
 // ---- API ----
 
@@ -77,9 +109,17 @@ function updateGame(data) {
   if (data.is_over && data.bot_hand) renderHand('bot-hand', data.bot_hand);
   else renderHand('bot-hand', null, {backs:true});
 
-  const legal = new Set(data.legal_actions||[]);
-  for (const a of ['f','k','c','b50','b100','a'])
-    document.getElementById('btn-'+a).disabled = !legal.has(a)||data.is_over;
+  // Render action buttons dynamically from legal_actions
+  const actBox = document.getElementById('actions'); actBox.innerHTML = '';
+  const legal = data.legal_actions || [];
+  for (const a of legal) {
+    const btn = document.createElement('button');
+    btn.className = 'act ' + actBtnClass(a);
+    btn.textContent = actLabel(a);
+    btn.onclick = () => doAction(a);
+    if (data.is_over) btn.disabled = true;
+    actBox.appendChild(btn);
+  }
 
   if (data.bot_actions) for (const a of data.bot_actions) addLog(`Bot: ${ACT_LBL[a]||a}`,'bot');
 

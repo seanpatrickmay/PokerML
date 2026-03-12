@@ -8,7 +8,7 @@ import sys
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--port", type=int, default=5050)
     ap.add_argument("--strategy", default="strategy.json.gz")
     args = ap.parse_args()
 

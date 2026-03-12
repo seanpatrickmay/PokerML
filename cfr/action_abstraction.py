@@ -1,62 +1,59 @@
 """
-Action abstraction for HUNL CFR.
+Action abstraction for HUNL CFR with street-specific bet sizings.
 
 Actions are encoded as string tokens:
   'f'    = fold
   'k'    = check
   'c'    = call
-  'b50'  = bet/raise 50% pot
-  'b100' = bet/raise 100% pot
+  'bXX'  = bet/raise XX% of pot  (e.g. b33, b67, b100, b150)
   'a'    = all-in
 """
 
 MAX_RAISES_PER_STREET = 4
-BET_FRACTIONS = [0.5, 1.0]
+
+# Different streets call for different sizing options.
+# Preflop: standard open / 3-bet sizes
+# Preflop fractions chosen to produce standard BB-multiple opens:
+#   0.75 → 2.5x    1.0 → 3x    1.75 → 4.5x
+# These also give reasonable 3-bet / 4-bet sizes when applied to larger pots.
+# Postflop fractions from standard GTO solver configurations.
+STREET_BET_FRACTIONS = {
+    0: [0.75, 1.00, 1.75],        # preflop  (2.5x / 3x / 4.5x opens)
+    1: [0.33, 0.67, 1.00],        # flop     (probe / standard / pot)
+    2: [0.67, 1.00, 1.50],        # turn     (standard / pot / overbet)
+    3: [0.50, 1.00, 2.00],        # river    (thin / pot / big overbet)
+}
 
 
 def get_bet_amount(fraction, pot):
-    """Chip amount for a bet of `fraction` of the pot."""
     return round(fraction * pot, 1)
 
 
-def get_legal_actions(pot, to_call, stack, raises_this_street, min_raise):
-    """
-    Return list of legal action tokens given the current state.
-
-    Parameters
-    ----------
-    pot : float           Total pot before this action.
-    to_call : float       Amount needed to call (0 if no facing bet).
-    stack : float         Active player's remaining stack.
-    raises_this_street : int  How many raises have occurred this street.
-    min_raise : float     Minimum legal raise size.
-    """
+def get_legal_actions(pot, to_call, stack, raises_this_street, min_raise,
+                      street=0):
+    """Return list of legal action tokens given the current state."""
+    fractions = STREET_BET_FRACTIONS.get(street, STREET_BET_FRACTIONS[0])
     actions = []
 
     if to_call > 0:
-        # Facing a bet
         actions.append('f')
         if stack <= to_call:
-            # Can only call all-in
             actions.append('c')
             return actions
         actions.append('c')
-        # Raises allowed if under cap
         if raises_this_street < MAX_RAISES_PER_STREET:
-            effective_pot = pot + to_call  # pot after calling
-            for frac in BET_FRACTIONS:
+            effective_pot = pot + to_call
+            for frac in fractions:
                 raise_amount = get_bet_amount(frac, effective_pot)
                 total_cost = to_call + raise_amount
                 if total_cost < stack and raise_amount >= min_raise:
                     actions.append(f'b{int(frac * 100)}')
-            # All-in is always an option if we have chips
             if stack > to_call:
                 actions.append('a')
     else:
-        # No facing bet
         actions.append('k')
         if raises_this_street < MAX_RAISES_PER_STREET:
-            for frac in BET_FRACTIONS:
+            for frac in fractions:
                 bet_amount = get_bet_amount(frac, pot)
                 if bet_amount >= min_raise and bet_amount < stack:
                     actions.append(f'b{int(frac * 100)}')
@@ -67,11 +64,7 @@ def get_legal_actions(pot, to_call, stack, raises_this_street, min_raise):
 
 
 def action_to_chips(action, pot, to_call, stack):
-    """
-    Convert an action token to the number of chips the player puts in.
-
-    Returns (chips_spent, is_allin).
-    """
+    """Convert an action token to (chips_spent, is_allin)."""
     if action == 'f':
         return 0, False
     if action == 'k':
@@ -81,15 +74,12 @@ def action_to_chips(action, pot, to_call, stack):
         return amount, amount >= stack
     if action == 'a':
         return stack, True
-    # Bet/raise: 'bXX' where XX is pot fraction * 100
     frac = int(action[1:]) / 100.0
     if to_call > 0:
         effective_pot = pot + to_call
         raise_size = get_bet_amount(frac, effective_pot)
-        total = to_call + raise_size
-        total = min(total, stack)
+        total = min(to_call + raise_size, stack)
         return total, total >= stack
     else:
-        bet_size = get_bet_amount(frac, pot)
-        bet_size = min(bet_size, stack)
+        bet_size = min(get_bet_amount(frac, pot), stack)
         return bet_size, bet_size >= stack

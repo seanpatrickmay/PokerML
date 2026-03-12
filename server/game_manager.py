@@ -143,7 +143,8 @@ class GameManager:
         while not state.is_terminal and state.current_player == bot_pos:
             hand = session['bot_hand']
             action = self.bot.get_action(
-                hand, state.visible_board(), state.history, state.get_actions())
+                hand, state.visible_board(), state.history, state.get_actions(),
+                state=state, bot_position=bot_pos)
             bot_actions.append(action)
             state = state.apply_action(action)
             session['state'] = state
