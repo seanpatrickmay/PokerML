@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUNL Poker — CFR Solver</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- LEFT: Game Panel -->
+    <div id="game-panel">
+      <div id="table">
+        <div id="bot-area" class="seat">
+          <div class="seat-label">Bot</div>
+          <div class="stack" id="bot-stack">100.0</div>
+          <div class="hand" id="bot-hand"></div>
+          <div class="bet-chip" id="bot-bet-display"></div>
+        </div>
+
+        <div id="board-area">
+          <div id="board" class="hand"></div>
+          <div id="pot-display">Pot: 1.5</div>
+          <div id="street-display">Preflop</div>
+        </div>
+
+        <div id="player-area" class="seat">
+          <div class="bet-chip" id="player-bet-display"></div>
+          <div class="hand" id="player-hand"></div>
+          <div class="stack" id="player-stack">100.0</div>
+          <div class="seat-label you">You (SB)</div>
+        </div>
+      </div>
+
+      <div id="actions">
+        <button onclick="doAction('f')" id="btn-f" class="act fold">Fold</button>
+        <button onclick="doAction('k')" id="btn-k" class="act check">Check</button>
+        <button onclick="doAction('c')" id="btn-c" class="act call">Call</button>
+        <button onclick="doAction('b50')" id="btn-b50" class="act raise">Bet 50%</button>
+        <button onclick="doAction('b100')" id="btn-b100" class="act raise">Bet Pot</button>
+        <button onclick="doAction('a')" id="btn-a" class="act allin">All In</button>
+      </div>
+
+      <div id="result-banner" class="hidden"></div>
+      <button id="new-hand-btn" class="hidden" onclick="newGame()">Deal New Hand</button>
+
+      <div id="log-box">
+        <div id="log-head">Hand History</div>
+        <div id="log"></div>
+      </div>
+
+      <div id="stats">
+        Hands: <span id="stat-hands">0</span> &nbsp;|&nbsp;
+        P/L: <span id="stat-profit">0.0</span> BB
+      </div>
+    </div>
+
+    <!-- RIGHT: Strategy Panel -->
+    <div id="strat-panel">
+      <div id="strat-header">
+        <h2>CFR Strategy</h2>
+        <div id="strat-context"></div>
+      </div>
+
+      <div id="range-grid-wrap">
+        <!-- col headers -->
+        <div class="grid-hdr corner"></div>
+        <div class="grid-hdr col-h">A</div><div class="grid-hdr col-h">K</div>
+        <div class="grid-hdr col-h">Q</div><div class="grid-hdr col-h">J</div>
+        <div class="grid-hdr col-h">T</div><div class="grid-hdr col-h">9</div>
+        <div class="grid-hdr col-h">8</div><div class="grid-hdr col-h">7</div>
+        <div class="grid-hdr col-h">6</div><div class="grid-hdr col-h">5</div>
+        <div class="grid-hdr col-h">4</div><div class="grid-hdr col-h">3</div>
+        <div class="grid-hdr col-h">2</div>
+        <!-- rows injected by JS -->
+        <div id="range-grid"></div>
+      </div>
+
+      <div id="legend">
+        <span class="leg" style="--c:#c62828">Fold</span>
+        <span class="leg" style="--c:#2e7d32">Check</span>
+        <span class="leg" style="--c:#1565c0">Call</span>
+        <span class="leg" style="--c:#e65100">Bet 50%</span>
+        <span class="leg" style="--c:#f57c00">Bet Pot</span>
+        <span class="leg" style="--c:#6a1b9a">All In</span>
+      </div>
+
+      <div id="detail" class="hidden">
+        <div id="detail-title"></div>
+        <div id="detail-meta"></div>
+        <div id="detail-bars"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

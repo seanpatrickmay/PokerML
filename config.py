@@ -53,3 +53,11 @@ MONTE_CARLO_DECAY_START = int(os.getenv("MONTE_CARLO_DECAY_START", "4"))
 
 # Minimum number of simulations to keep edges deterministic.
 MONTE_CARLO_MIN_SAMPLES = int(os.getenv("MONTE_CARLO_MIN_SAMPLES", "1"))
+
+
+# --- CFR solver ----------------------------------------------------------------
+
+CFR_ITERATIONS = int(os.getenv("CFR_ITERATIONS", "100000"))
+CFR_PREFLOP_BUCKETS = int(os.getenv("CFR_PREFLOP_BUCKETS", "10"))
+CFR_POSTFLOP_BUCKETS = int(os.getenv("CFR_POSTFLOP_BUCKETS", "10"))
+CFR_STRATEGY_FILE = os.getenv("CFR_STRATEGY_FILE", "strategy.json.gz")

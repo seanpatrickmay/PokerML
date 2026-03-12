@@ -1,0 +1,6 @@
+numpy
+phevaluator
+scipy
+scikit-learn
+fastapi
+uvicorn[standard]
