@@ -3,91 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HUNL Poker — CFR Solver</title>
+  <title>Poker — CFR Solver</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div id="app">
+  <main id="app">
     <!-- LEFT: Game Panel -->
-    <div id="game-panel">
+    <section id="game-panel" aria-label="Poker table">
+      <div id="settings-bar" role="toolbar" aria-label="Game settings">
+        <label for="num-players-select">Players</label>
+        <select id="num-players-select">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6" selected>6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+        </select>
+        <label for="position-select">Position</label>
+        <select id="position-select"></select>
+        <button id="new-hand-btn" type="button" aria-label="Deal new hand">New Hand</button>
+      </div>
+
       <div id="table">
-        <div id="bot-area" class="seat">
-          <div class="seat-label">Bot</div>
-          <div class="stack" id="bot-stack">100.0</div>
-          <div class="hand" id="bot-hand"></div>
-          <div class="bet-chip" id="bot-bet-display"></div>
-        </div>
-
-        <div id="board-area">
-          <div id="board" class="hand"></div>
-          <div id="pot-display">Pot: 1.5</div>
-          <div id="street-display">Preflop</div>
-        </div>
-
-        <div id="player-area" class="seat">
-          <div class="bet-chip" id="player-bet-display"></div>
-          <div class="hand" id="player-hand"></div>
-          <div class="stack" id="player-stack">100.0</div>
-          <div class="seat-label you">You (SB)</div>
+        <div id="table-felt" role="img" aria-label="Poker table">
+          <div id="board-area">
+            <div id="board" class="hand" aria-label="Community cards"></div>
+            <div id="pot-display" aria-live="polite">Pot: 1.5</div>
+            <div id="street-display">Preflop</div>
+          </div>
+          <div id="dealer-btn" aria-label="Dealer button">D</div>
         </div>
       </div>
 
-      <div id="actions">
+      <!-- Info bar: equity, pot odds, SPR -->
+      <div id="info-bar" class="hidden">
+        <div id="equity-display" aria-label="Hand equity">
+          <span id="equity-label">Equity</span>
+          <div id="equity-track"><div id="equity-fill"></div></div>
+          <span id="equity-text">—</span>
+        </div>
+        <div id="pot-info">
+          <span id="pot-info-text"></span>
+        </div>
+      </div>
+
+      <div id="live-solver" class="hidden" aria-label="Solver recommendation">
+        <div id="live-solver-label">Live Solver</div>
+        <div id="live-solver-bars"></div>
+        <div id="live-solver-meta"></div>
+      </div>
+
+      <div id="actions" role="toolbar" aria-label="Player actions">
         <!-- buttons rendered dynamically by app.js -->
       </div>
 
-      <div id="result-banner" class="hidden"></div>
-      <button id="new-hand-btn" class="hidden" onclick="newGame()">Deal New Hand</button>
+      <div id="result-banner" class="hidden" role="alert" aria-live="assertive"></div>
 
-      <div id="log-box">
-        <div id="log-head">Hand History</div>
-        <div id="log"></div>
+      <div id="log-box" aria-label="Hand history">
+        <h3 id="log-head">Hand History</h3>
+        <div id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
       </div>
 
-      <div id="stats">
+      <div id="stats" aria-label="Session statistics">
         Hands: <span id="stat-hands">0</span> &nbsp;|&nbsp;
         P/L: <span id="stat-profit">0.0</span> BB
       </div>
-    </div>
+    </section>
 
     <!-- RIGHT: Strategy Panel -->
-    <div id="strat-panel">
+    <section id="strat-panel" aria-label="Strategy analysis">
       <div id="strat-header">
         <h2>CFR Strategy</h2>
-        <div id="strat-context"></div>
+        <div id="strat-context" aria-live="polite"></div>
       </div>
 
-      <div id="range-grid-wrap">
-        <!-- col headers -->
+      <div id="range-grid-wrap" role="grid" aria-label="Hand range grid">
         <div class="grid-hdr corner"></div>
-        <div class="grid-hdr col-h">A</div><div class="grid-hdr col-h">K</div>
-        <div class="grid-hdr col-h">Q</div><div class="grid-hdr col-h">J</div>
-        <div class="grid-hdr col-h">T</div><div class="grid-hdr col-h">9</div>
-        <div class="grid-hdr col-h">8</div><div class="grid-hdr col-h">7</div>
-        <div class="grid-hdr col-h">6</div><div class="grid-hdr col-h">5</div>
-        <div class="grid-hdr col-h">4</div><div class="grid-hdr col-h">3</div>
-        <div class="grid-hdr col-h">2</div>
-        <!-- rows injected by JS -->
+        <div class="grid-hdr col-h" role="columnheader">A</div><div class="grid-hdr col-h" role="columnheader">K</div>
+        <div class="grid-hdr col-h" role="columnheader">Q</div><div class="grid-hdr col-h" role="columnheader">J</div>
+        <div class="grid-hdr col-h" role="columnheader">T</div><div class="grid-hdr col-h" role="columnheader">9</div>
+        <div class="grid-hdr col-h" role="columnheader">8</div><div class="grid-hdr col-h" role="columnheader">7</div>
+        <div class="grid-hdr col-h" role="columnheader">6</div><div class="grid-hdr col-h" role="columnheader">5</div>
+        <div class="grid-hdr col-h" role="columnheader">4</div><div class="grid-hdr col-h" role="columnheader">3</div>
+        <div class="grid-hdr col-h" role="columnheader">2</div>
         <div id="range-grid"></div>
       </div>
 
-      <div id="legend">
-        <span class="leg" style="--c:#c62828">Fold</span>
-        <span class="leg" style="--c:#2e7d32">Check</span>
-        <span class="leg" style="--c:#1565c0">Call</span>
-        <span class="leg" style="--c:#e65100">Small Bet</span>
-        <span class="leg" style="--c:#f57c00">Pot Bet</span>
-        <span class="leg" style="--c:#ff6d00">Overbet</span>
-        <span class="leg" style="--c:#6a1b9a">All In</span>
+      <div id="legend" aria-label="Color legend">
+        <span class="leg" style="--c:#ef4444">Fold</span>
+        <span class="leg" style="--c:#22c55e">Check</span>
+        <span class="leg" style="--c:#3b82f6">Call</span>
+        <span class="leg" style="--c:#f97316">Small Bet</span>
+        <span class="leg" style="--c:#eab308">Pot Bet</span>
+        <span class="leg" style="--c:#f59e0b">Overbet</span>
+        <span class="leg" style="--c:#a855f7">All In</span>
       </div>
 
       <div id="detail" class="hidden">
-        <div id="detail-title"></div>
+        <h3 id="detail-title"></h3>
         <div id="detail-meta"></div>
         <div id="detail-bars"></div>
+        <div id="detail-combos"></div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
   <script src="/static/app.js"></script>
 </body>
